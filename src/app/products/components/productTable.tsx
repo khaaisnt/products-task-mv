@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit } from "@mui/icons-material";
+import { Edit, Visibility } from "@mui/icons-material";
 import {
   TableContainer,
   Box,
@@ -23,20 +23,16 @@ export default function ProductTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(false);
 
   const fetchProducts = async (skip: number, limit: number) => {
-    setLoading(true);
     try {
       const res = await axiosInstance.get(
         `/products?limit=${limit}&skip=${skip}`
       );
       setProducts(res.data.products);
       setTotalCount(res.data.total || 100);
-      setLoading(false);
     } catch (err) {
       console.error("API Error:", err);
-      setLoading(false);
     }
   };
 
@@ -102,7 +98,7 @@ export default function ProductTable() {
                       variant="contained"
                       color="primary"
                       size="small"
-                      href={`/products/${product.id}`}
+                      href={`/products/${product.id}/update`}
                       sx={{
                         borderRadius: 2,
                         padding: 1,
@@ -110,6 +106,15 @@ export default function ProductTable() {
                       }}
                     >
                       <Edit sx={{ fontSize: "large" }} />
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      size="small"
+                      href={`/products/${product.id}/view`}
+                      sx={{ borderRadius: 2, padding: 1, maxWidth: "30px" }}
+                    >
+                      <Visibility sx={{ fontSize: "large" }} />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -132,7 +137,7 @@ export default function ProductTable() {
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[5, 10, 25, 50]}
+        rowsPerPageOptions={[5, 10, 25, 50, 100]}
         labelRowsPerPage="Items per page:"
       />
     </Box>

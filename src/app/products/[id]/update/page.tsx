@@ -1,10 +1,11 @@
 "use client";
 
 import React, { FormEvent, useState, useEffect } from "react";
-import axiosInstance from "../../../../lib/axios/axiosInstance";
+import axiosInstance from "../../../../../lib/axios/axiosInstance";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter, useParams } from "next/navigation";
 import { Button, TextField, Typography, CircularProgress } from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
 
 export default function UpdateProduct() {
   const router = useRouter();
@@ -83,6 +84,18 @@ export default function UpdateProduct() {
     <div className="container p-10 mx-auto">
       <Toaster position="top-center" />
       <div className="mb-4">
+        <Button
+        variant="contained"
+        color="primary"
+        startIcon={<ArrowBack />}
+        onClick={() => router.push("/products")}
+        sx={{
+          borderRadius: 2,
+          marginBottom: 2,
+        }}
+        >
+          Back
+        </Button>
         <Typography variant="h4">Update Product</Typography>
       </div>
       <div className="space-y-4">
