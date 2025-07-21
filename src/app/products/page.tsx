@@ -8,21 +8,7 @@ import ProductCard from "./components/productCard";
 import ProductTable from "./components/productTable";
 
 export default function ProductPage() {
-  const [products, setProducts] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await axiosInstance.get("/products");
-        setProducts(res.data.products);
-      } catch (err) {
-        console.error("API Error:", err);
-      }
-    };
-
-    fetchProducts();
-  }, []);
 
   return (
     <div className="p-10">
