@@ -2,7 +2,19 @@
 
 import { useEffect, useState } from "react";
 import axiosInstance from "../../../lib/axios/axiosInstance";
-import { Box, Button, Card } from "@mui/material";
+import {
+  Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+} from "@mui/material";
+import DeleteProduct from "./components/delete-product";
+import { Add } from "@mui/icons-material";
 
 export default function ProductPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -22,36 +34,72 @@ export default function ProductPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold mb-2">Product List Admin</h1>
-      <Button
-        sx={{
-          backgroundColor: "#2196f3",
-          borderRadius: 100,
-        }}
-        href="/products/create"
-        variant="contained"
-        className="mb-4"
-      >
-        Create Product
-      </Button>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {products.map((product) => (
-          <Card
-            sx={{ padding: 2, borderRadius: 5 }}
-            key={product.id}
-            className="p-2 flex flex-col"
-          >
-            <h2 className="text-2xl font-semibold mb-2">{product.title}</h2>
-            <div className="px-1 py-0.5 rounded-full text-xs bg-cyan-500 text-white max-w-[80px] text-center mb-2">
-              {product.category}
-            </div>
-            <p className="text-gray-500 text-lg font-semibold mb-2">
-              ${product.price}
-            </p>
-            <p className="text-gray-500">{product.brand || "-"}</p>
-          </Card>
-        ))}
+      <div className="flex justify-between items-center mb-4">
+        <div className="mb-5">
+          <h1 className="text-2xl font-semibold">Product List Admin</h1>
+          <p className="text-gray-600 font-light text-base">
+            Manage your products effectively
+          </p>
+        </div>
+        <Button
+          sx={{
+            borderRadius: 100,
+            textTransform: "none",
+          }}
+          href="/products/create"
+          variant="contained"
+        >
+          Create Product
+          <Add sx={{ marginLeft: 1, fontSize: "medium" }} />
+        </Button>
       </div>
+
+      <TableContainer
+        component={Paper}
+        sx={{ mt: 2, borderRadius: 2, boxShadow: 2 }}
+      >
+        <Table sx={{ minWidth: 650 }} aria-label="product table">
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+              <TableCell sx={{ fontWeight: "bold" }}>Title</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Category</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Price</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Brand</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }} align="right">
+                Actions
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {products.map((product) => (
+              <TableRow key={product.id}>
+                <TableCell>{product.title}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={product.category}
+                    size="small"
+                    sx={{
+                      backgroundColor: "#0ea5e9",
+                      color: "white",
+                      fontSize: "0.75rem",
+                      height: "22px",
+                    }}
+                  />
+                </TableCell>
+                <TableCell>${product.price}</TableCell>
+                <TableCell>{product.brand || "-"}</TableCell>
+                <TableCell align="right">
+                  <DeleteProduct productId={product.id} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {products.length === 0 && (
+        <div className="text-center py-10 text-gray-500">No products found</div>
+      )}
     </div>
   );
 }
