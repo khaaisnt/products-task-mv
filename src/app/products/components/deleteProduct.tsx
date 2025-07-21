@@ -10,8 +10,6 @@ type Props = {
 };
 
 export default function DeleteProduct({ productId }: Props) {
-  const router = useRouter();
-
   const handleDelete = async (e: FormEvent) => {
     e.preventDefault();
 

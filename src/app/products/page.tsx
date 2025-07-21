@@ -13,8 +13,9 @@ import {
   TableRow,
   Chip,
 } from "@mui/material";
-import DeleteProduct from "./components/delete-product";
-import { Add } from "@mui/icons-material";
+import DeleteProduct from "./components/deleteProduct";
+import { Add, Edit } from "@mui/icons-material";
+import ProductCard from "./components/productCard";
 
 export default function ProductPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -33,9 +34,9 @@ export default function ProductPage() {
   }, []);
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <div className="mb-5">
+    <div className="p-10">
+      <div className="flex-wrap md:flex justify-between items-center mb-4">
+        <div>
           <h1 className="text-2xl font-semibold">Product List Admin</h1>
           <p className="text-gray-600 font-light text-base">
             Manage your products effectively
@@ -45,6 +46,7 @@ export default function ProductPage() {
           sx={{
             borderRadius: 100,
             textTransform: "none",
+            marginY: 2,
           }}
           href="/products/create"
           variant="contained"
@@ -61,6 +63,7 @@ export default function ProductPage() {
         <Table sx={{ minWidth: 650 }} aria-label="product table">
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+              <TableCell sx={{ fontWeight: "bold" }}>No</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Title</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Category</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Price</TableCell>
@@ -73,14 +76,14 @@ export default function ProductPage() {
           <TableBody>
             {products.map((product) => (
               <TableRow key={product.id}>
+                <TableCell>{product.id}</TableCell>
                 <TableCell>{product.title}</TableCell>
                 <TableCell>
                   <Chip
                     label={product.category}
                     size="small"
+                    color="primary"
                     sx={{
-                      backgroundColor: "#0ea5e9",
-                      color: "white",
                       fontSize: "0.75rem",
                       height: "22px",
                     }}
@@ -88,8 +91,21 @@ export default function ProductPage() {
                 </TableCell>
                 <TableCell>${product.price}</TableCell>
                 <TableCell>{product.brand || "-"}</TableCell>
-                <TableCell align="right">
+                <TableCell align="right" sx={{ display: "flex", gap: 1 }}>
                   <DeleteProduct productId={product.id} />
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="small"
+                    href={`/products/${product.id}`}
+                    sx={{
+                      borderRadius: 2,
+                      padding: 1,
+                      maxWidth: "30px",
+                    }}
+                  >
+                    <Edit sx={{ fontSize: "large" }} />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
