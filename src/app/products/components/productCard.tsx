@@ -10,7 +10,7 @@ import {
   Grid,
   Typography,
 } from "@mui/material";
-import { Edit } from "@mui/icons-material";
+import { Edit, Visibility } from "@mui/icons-material";
 import DeleteProduct from "./deleteProduct";
 
 export default function ProductCard() {
@@ -32,7 +32,6 @@ export default function ProductCard() {
   return (
     <Box>
       <Grid
-        
         component="div"
         spacing={2}
         columns={{ xs: 1, sm: 2, md: 3, lg: 4 }}
@@ -89,17 +88,28 @@ export default function ProductCard() {
                 }}
               >
                 <Button
-                sx={{
+                  sx={{
                     borderRadius: 2,
                     padding: 1,
-                }}
+                  }}
                   variant="contained"
-                  color="secondary"
+                  color="primary"
                   href={`/products/${product.id}`}
                 >
                   <Edit sx={{ fontSize: "large" }} />
                 </Button>
                 <DeleteProduct productId={product.id} />
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  href={`/products/${product.id}/view`}
+                  sx={{
+                    borderRadius: 2,
+                    padding: 1,
+                  }}
+                >
+                  <Visibility sx={{ fontSize: "large" }} />
+                </Button>
               </Box>
             </CardContent>
           </Card>

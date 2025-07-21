@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowBack } from "@mui/icons-material";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Card, Typography } from "@mui/material";
 import Rating from "@mui/material/Rating";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -61,11 +61,19 @@ export default function ViewProduct() {
               height={500}
               alt={product?.title || "Product image"}
               style={{ objectFit: "cover", width: "100%", height: "auto" }}
+              className="hover:scale-125 transition-transform duration-300"
             />
           )}
         </Box>
         <Box>
-          <Typography variant="h4">{product?.title}</Typography>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: "medium",
+            }}
+          >
+            {product?.title}
+          </Typography>
           <Typography color="text.secondary" variant="body2" sx={{ mt: 2 }}>
             {product?.description}
           </Typography>
@@ -95,6 +103,51 @@ export default function ViewProduct() {
             </Typography>
           </Box>
         </Box>
+      </Box>
+
+      <Box>
+        <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+          Reviews:
+        </Typography>
+        {product?.reviews && product.reviews.length > 0 ? (
+          product.reviews.map((review, index) => (
+            <Card
+              key={index}
+              sx={{
+                padding: 2,
+                marginBottom: 2,
+                borderRadius: 2,
+                boxShadow: "none",
+                border: "1px solid #e0e0e0",
+                backgroundColor: "#f9f9f9",
+              }}
+            >
+              <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                {review.reviewerName}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {review.reviewerEmail}
+              </Typography>
+              <Rating
+                sx={{
+                  marginTop: 1,
+                }}
+                name={`review-rating-${index}`}
+                value={review.rating}
+                precision={0.1}
+                readOnly
+                size="medium"
+              />
+              <Typography variant="body2" color="text.secondary">
+                {review.comment}
+              </Typography>
+            </Card>
+          ))
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No reviews yet.
+          </Typography>
+        )}
       </Box>
     </div>
   );
