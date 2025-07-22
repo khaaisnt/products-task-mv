@@ -1,20 +1,43 @@
 "use client";
 
-import React, { FormEvent, useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import axiosInstance from "../../../../../lib/axios/axiosInstance";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter, useParams } from "next/navigation";
-import { Button, TextField, Typography, CircularProgress } from "@mui/material";
+import { Button, TextField, Typography } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { updateProductSchema } from "../../validation/product.schema";
+
+type ProductFormData = {
+  title: string;
+  category: string;
+  price: number;
+  description: string;
+  brand: string;
+};
 
 export default function UpdateProduct() {
   const router = useRouter();
   const params = useParams();
-  const [title, setTitle] = useState<string>("");
-  const [category, setCategory] = useState<string>("");
-  const [price, setPrice] = useState<number>(0);
-  const [description, setDescription] = useState<string>("");
-  const [brand, setBrand] = useState<string>("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    reset,
+  } = useForm<ProductFormData>({
+    resolver: yupResolver(updateProductSchema),
+    defaultValues: {
+      title: "",
+      category: "",
+      price: 0,
+      description: "",
+      brand: "",
+    },
+  });
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -30,53 +53,46 @@ export default function UpdateProduct() {
 
         if (response.status >= 200 && response.status < 300) {
           const product = response.data;
-          setTitle(product.title || "");
-          setCategory(product.category || "");
-          setPrice(product.price || 0);
-          setDescription(product.description || "");
-          setBrand(product.brand || "");
+
+          // Use reset instead of individual setValues for better performance
+          reset({
+            title: product.title || "",
+            category: product.category || "",
+            price: product.price || 0,
+            description: product.description || "",
+            brand: product.brand || "",
+          });
         } else {
           toast.error("Failed to fetch product details");
           router.push("/products");
         }
       } catch (error) {
         console.error("Error fetching product:", error);
+        toast.error("Error loading product details");
+        router.push("/products");
       }
     };
 
     fetchProduct();
-  }, [params.id, router]);
+  }, [params.id, router, setValue, reset]);
 
-  const handleUpdate = async (e: FormEvent) => {
+  const onSubmit = async (data: ProductFormData) => {
     try {
-      e.preventDefault();
-
-      const request = {
-        title,
-        category,
-        price,
-        description,
-        brand,
-      };
-
-      const response = await axiosInstance.put(
-        `/products/${params.id}`,
-        request
-      );
+      const response = await axiosInstance.put(`/products/${params.id}`, data);
 
       if (response.status >= 200 && response.status < 300) {
-        const message = response.data.message || "Produk berhasil diperbarui.";
+        const message = response.data.message || "Product updated successfully";
         toast.success(message);
         setTimeout(() => {
           router.push("/products");
         }, 1500);
       } else {
-        const message = response.data.message || "Gagal memperbarui produk.";
+        const message = response.data.message || "Failed to update product";
         toast.error(message);
       }
     } catch (error) {
-      toast.error("Terjadi kesalahan saat memperbarui produk.");
       console.error("Error updating product:", error);
+      toast.error("Error updating product");
     }
   };
 
@@ -85,41 +101,48 @@ export default function UpdateProduct() {
       <Toaster position="top-center" />
       <div className="mb-4">
         <Button
-        variant="contained"
-        color="primary"
-        startIcon={<ArrowBack />}
-        onClick={() => router.push("/products")}
-        sx={{
-          borderRadius: 2,
-          marginBottom: 2,
-        }}
+          variant="contained"
+          color="primary"
+          startIcon={<ArrowBack />}
+          onClick={() => router.push("/products")}
+          sx={{
+            borderRadius: 2,
+            marginBottom: 2,
+          }}
         >
           Back
         </Button>
         <Typography variant="h4">Update Product</Typography>
       </div>
-      <div className="space-y-4">
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <TextField
           label="Title"
           variant="outlined"
           fullWidth
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          {...register("title")}
+          error={!!errors.title}
+          helperText={errors.title?.message}
+          InputLabelProps={{ shrink: true }}
         />
         <TextField
           label="Category"
           variant="outlined"
           fullWidth
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          {...register("category")}
+          error={!!errors.category}
+          helperText={errors.category?.message}
+          InputLabelProps={{ shrink: true }}
         />
         <TextField
           label="Price"
           variant="outlined"
           fullWidth
           type="number"
-          value={price}
-          onChange={(e) => setPrice(Number(e.target.value))}
+          {...register("price", { valueAsNumber: true })}
+          error={!!errors.price}
+          helperText={errors.price?.message}
+          InputLabelProps={{ shrink: true }}
         />
         <TextField
           label="Description"
@@ -127,20 +150,24 @@ export default function UpdateProduct() {
           fullWidth
           multiline
           rows={4}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          {...register("description")}
+          error={!!errors.description}
+          helperText={errors.description?.message}
+          InputLabelProps={{ shrink: true }}
         />
         <TextField
           label="Brand"
           variant="outlined"
           fullWidth
-          value={brand}
-          onChange={(e) => setBrand(e.target.value)}
+          {...register("brand")}
+          error={!!errors.brand}
+          helperText={errors.brand?.message}
+          InputLabelProps={{ shrink: true }}
         />
         <Button
           variant="contained"
           size="large"
-          onClick={handleUpdate}
+          type="submit"
           fullWidth
           sx={{
             borderRadius: 100,
@@ -150,7 +177,7 @@ export default function UpdateProduct() {
         >
           Update
         </Button>
-      </div>
+      </form>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { createProductSchema } from "../validation/product.schema";
+import { ArrowBack } from "@mui/icons-material";
 
 type ProductFormData = {
   title: string;
@@ -60,7 +61,11 @@ export default function CreateProduct() {
   return (
     <div className="container p-10 mx-auto">
       <Toaster position="top-center" />
-      <div className="mb-4">
+
+      <Button onClick={router.back} variant="contained" color="primary" startIcon={<ArrowBack />}>
+        Back
+      </Button>
+      <div className="my-4">
         <Typography variant="h4">Create Product</Typography>
       </div>
 
