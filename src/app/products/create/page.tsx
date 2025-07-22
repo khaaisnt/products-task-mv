@@ -1,40 +1,49 @@
 "use client";
 
-import React, { FormEvent, useState } from "react";
+import React from "react";
 import axiosInstance from "../../../../lib/axios/axiosInstance";
 import { toast, Toaster } from "react-hot-toast";
 import { Button, TextField, Typography } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { createProductSchema } from "../validation/product.schema";
+
+type ProductFormData = {
+  title: string;
+  category: string;
+  price: number;
+  description: string;
+  brand: string;
+};
 
 export default function CreateProduct() {
-  const [title, setTitle] = useState<string>("");
-  const [category, setCategory] = useState<string>("");
-  const [price, setPrice] = useState<number>(0);
-  const [description, setDescription] = useState<string>("");
-  const [brand, setBrand] = useState<string>("");
   const router = useRouter();
 
-  const handleSubmit = async (e: FormEvent) => {
-    if (!title || !category || !price || !description || !brand) {
-      toast.error("Semua field harus diisi!");
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ProductFormData>({
+    resolver: yupResolver(createProductSchema),
+    defaultValues: {
+      title: "",
+      category: "",
+      price: 0,
+      description: "",
+      brand: "",
+    },
+  });
 
+  const onSubmit = async (data: ProductFormData) => {
     try {
-      e.preventDefault();
-      const request = {
-        title,
-        category,
-        price,
-        description,
-        brand,
-      };
-      const response = await axiosInstance.post("/products/add", request);
-      const message = response.data.message;
+      const response = await axiosInstance.post("/products/add", data);
 
       if (response.status >= 200 && response.status < 300) {
         const message = response.data.message || "Produk berhasil dibuat";
         toast.success(message);
+        reset();
         setTimeout(() => {
           router.push("/products");
         }, 1500);
@@ -49,58 +58,73 @@ export default function CreateProduct() {
   };
 
   return (
-    <div className="container p-10 mx-auto ">
+    <div className="container p-10 mx-auto">
       <Toaster position="top-center" />
       <div className="mb-4">
         <Typography variant="h4">Create Product</Typography>
       </div>
-      <div className="space-y-4">
-        <TextField
-          required
-          type="text"
-          variant="outlined"
-          label="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          fullWidth
-        />
-        <TextField
-          required
-          type="text"
-          variant="outlined"
-          label="Category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          fullWidth
-        />
-        <TextField
-          required
-          type="number"
-          variant="outlined"
-          label="Price"
-          value={price}
-          onChange={(e) => setPrice(Number(e.target.value))}
-          fullWidth
-        />
-        <TextField
-          required
-          type="text"
-          variant="outlined"
-          label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          fullWidth
-        />
-        <TextField
-          required
-          type="text"
-          variant="outlined"
-          label="Brand"
-          value={brand}
-          onChange={(e) => setBrand(e.target.value)}
-          fullWidth
-        />
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <TextField
+            label="Title"
+            variant="outlined"
+            fullWidth
+            {...register("title")}
+            error={!!errors.title}
+            helperText={errors.title?.message}
+          />
+        </div>
+
+        <div>
+          <TextField
+            label="Category"
+            variant="outlined"
+            fullWidth
+            {...register("category")}
+            error={!!errors.category}
+            helperText={errors.category?.message}
+          />
+        </div>
+
+        <div>
+          <TextField
+            label="Price"
+            type="number"
+            variant="outlined"
+            fullWidth
+            {...register("price", { valueAsNumber: true })}
+            error={!!errors.price}
+            helperText={errors.price?.message}
+          />
+        </div>
+
+        <div>
+          <TextField
+            label="Description"
+            variant="outlined"
+            fullWidth
+            multiline
+            rows={4}
+            {...register("description")}
+            error={!!errors.description}
+            helperText={errors.description?.message}
+          />
+        </div>
+
+        <div>
+          <TextField
+            label="Brand"
+            variant="outlined"
+            fullWidth
+            {...register("brand")}
+            error={!!errors.brand}
+            helperText={errors.brand?.message}
+          />
+        </div>
+
         <Button
+          type="submit"
           sx={{
             textDecoration: "none",
             textTransform: "none",
@@ -111,11 +135,10 @@ export default function CreateProduct() {
           fullWidth
           variant="contained"
           color="primary"
-          onClick={handleSubmit}
         >
           Submit
         </Button>
-      </div>
+      </form>
     </div>
   );
 }
