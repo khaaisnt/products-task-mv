@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axiosInstance from "../../../../lib/axios/axiosInstance";
 import {
   Box,
   Button,
@@ -7,27 +6,40 @@ import {
   CardContent,
   CardHeader,
   CardMedia,
+  CircularProgress,
   Grid,
+  Pagination,
   Typography,
 } from "@mui/material";
-import { Edit, Visibility } from "@mui/icons-material";
+import { Edit, Error, Visibility } from "@mui/icons-material";
 import DeleteProduct from "./deleteProduct";
+import { useFetchProduct } from "../services/fetchProduct.service";
 
 export default function ProductCard() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const skip = (currentPage - 1) * itemsPerPage;
+
+  const { data, isLoading, isError } = useFetchProduct({
+    skip: skip,
+    limit: itemsPerPage,
+  });
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await axiosInstance.get("/products");
-        setProducts(res.data.products);
-      } catch (err) {
-        console.error("API Error:", err);
-      }
-    };
+    if (data && data.total) {
+      setTotalPages(Math.ceil(data.total / itemsPerPage));
+    }
+  }, [data]);
 
-    fetchProducts();
-  }, []);
+  const products = data?.products || [];
+
+  const handlePageChange = (
+    _event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    setCurrentPage(value);
+  };
 
   return (
     <Box>
@@ -41,80 +53,129 @@ export default function ProductCard() {
           justifyContent: "center",
         }}
       >
-        {products.map((product) => (
-          <Card
-            key={product.id}
+        {isLoading ? (
+          <Typography
+            variant="h6"
+            align="center"
             sx={{
-              borderRadius: 5,
-              margin: 2,
-              padding: 2,
-              width: {
-                xs: "100%",
-                sm: "45%",
-                md: "30%",
-                lg: "22%",
-              },
+              width: "100%",
+              mt: 4,
+              display: "flex",
+              justifyContent: "center",
+              gap: 1,
             }}
           >
-            <CardMedia
-              component="img"
-              image={product.images[0]}
-              alt={product.title}
-              sx={{ objectFit: "cover" }}
-            />
-            <CardHeader
-              title={product.title}
-              subheader={`Price: $${product.price}`}
-            />
-            <CardContent>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  display: "-webkit-box",
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {product.description}
-              </Typography>
-              <Box
-                sx={{
-                  marginTop: 1,
-                  display: "flex",
-                  gap: 1,
-                }}
-              >
-                <Button
+            <CircularProgress size={36} /> Loading
+          </Typography>
+        ) : isError ? (
+          <Typography
+            variant="h6"
+            align="center"
+            sx={{
+              width: "100%",
+              mt: 4,
+              display: "flex",
+              justifyContent: "center",
+              gap: 1,
+            }}
+          >
+            <Error color="error" fontSize="large" />
+            Error loading products. Please try again later.
+          </Typography>
+        ) : products.length > 0 ? (
+          products.map((product) => (
+            <Card
+              key={product.id}
+              sx={{
+                borderRadius: 5,
+                margin: 2,
+                padding: 2,
+                width: {
+                  xs: "100%",
+                  sm: "45%",
+                  md: "30%",
+                  lg: "22%",
+                },
+              }}
+            >
+              <CardMedia
+                component="img"
+                image={product.images[0]}
+                alt={product.title}
+                sx={{ objectFit: "cover" }}
+              />
+              <CardHeader
+                title={product.title}
+                subheader={`Price: $${product.price}`}
+              />
+              <CardContent>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
                   sx={{
-                    borderRadius: 2,
-                    padding: 1,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}
-                  variant="contained"
-                  color="primary"
-                  href={`/products/${product.id}`}
                 >
-                  <Edit sx={{ fontSize: "large" }} />
-                </Button>
-                <DeleteProduct productId={product.id} />
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  href={`/products/${product.id}/view`}
+                  {product.description}
+                </Typography>
+                <Box
                   sx={{
-                    borderRadius: 2,
-                    padding: 1,
+                    marginTop: 1,
+                    display: "flex",
+                    gap: 1,
                   }}
                 >
-                  <Visibility sx={{ fontSize: "large" }} />
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
-        ))}
+                  <Button
+                    sx={{
+                      borderRadius: 2,
+                      padding: 1,
+                    }}
+                    variant="contained"
+                    color="primary"
+                    href={`/products/${product.id}/update`}
+                  >
+                    <Edit sx={{ fontSize: "large" }} />
+                  </Button>
+                  <DeleteProduct productId={product.id} />
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    href={`/products/${product.id}/view`}
+                    sx={{
+                      borderRadius: 2,
+                      padding: 1,
+                    }}
+                  >
+                    <Visibility sx={{ fontSize: "large" }} />
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <Typography variant="h6" align="center" sx={{ width: "100%", mt: 4 }}>
+            No products found
+          </Typography>
+        )}
       </Grid>
+
+      <Pagination
+        count={totalPages}
+        shape="rounded"
+        color="primary"
+        size="large"
+        page={currentPage}
+        onChange={handlePageChange}
+        sx={{
+          mt: 4,
+          display: "flex",
+          justifyContent: "center",
+        }}
+      />
     </Box>
   );
 }
