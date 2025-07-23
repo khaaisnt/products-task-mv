@@ -1,31 +1,51 @@
 "use client";
 
 import { ArrowBack } from "@mui/icons-material";
-import { Box, Button, Card, Typography } from "@mui/material";
+import { Box, Button, Card, CircularProgress, Typography } from "@mui/material";
 import Rating from "@mui/material/Rating";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import axiosInstance from "../../../../../lib/axios/axiosInstance";
+import React from "react";
+import { useFetchProductDetail } from "../../services/fetchProductDetail.service";
 
 export default function ViewProduct() {
   const router = useRouter();
   const params = useParams();
-  const [product, setProduct] = useState<any>(null);
+  const productId = Number(params.id);
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const productId = params.id;
-        const res = await axiosInstance.get(`/products/${productId}`);
-        setProduct(res.data);
-      } catch (err) {
-        console.error("API Error:", err);
-      }
-    };
+  const {
+    data: product,
+    isLoading,
+    isError,
+  } = useFetchProductDetail(productId);
 
-    fetchProduct();
-  }, [params.id]);
+  if (isLoading) {
+    return (
+      <div className="container p-10 mx-auto text-center">
+        <CircularProgress />
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          Loading product details...
+        </Typography>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="container p-10 mx-auto text-center">
+        <Typography variant="body1" color="error" sx={{ mb: 2 }}>
+          Failed to load product details.
+        </Typography>
+        <Button
+          variant="contained"
+          color="warning"
+          onClick={() => router.push("/products")}
+        >
+          Back to Product
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container p-10 mx-auto">
