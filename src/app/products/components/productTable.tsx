@@ -13,42 +13,38 @@ import {
   Paper,
   TableBody,
   TablePagination,
+  CircularProgress,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import DeleteProduct from "./deleteProduct";
-import axiosInstance from "../../../../lib/axios/axiosInstance";
+import { useFetchProduct } from "../services/fetchProduct.service";
+import { useRouter } from "next/navigation";
 
 export default function ProductTable() {
-  const [products, setProducts] = useState<any[]>([]);
+  const router = useRouter();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
-  const fetchProducts = async (skip: number, limit: number) => {
-    try {
-      const res = await axiosInstance.get(
-        `/products?limit=${limit}&skip=${skip}`
-      );
-      setProducts(res.data.products);
-      setTotalCount(res.data.total || 100);
-    } catch (err) {
-      console.error("API Error:", err);
-    }
-  };
+  const { data, isLoading, isError } = useFetchProduct({
+    skip: page * rowsPerPage,
+    limit: rowsPerPage,
+  });
 
   useEffect(() => {
-    fetchProducts(page * rowsPerPage, rowsPerPage);
-  }, [page, rowsPerPage]);
+    if (data && data.total) {
+      setTotalCount(data.total);
+    }
+  }, [data]);
 
-  const handleChangePage = (
-    event: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number
-  ) => {
+  const products = data?.products || [];
+
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -74,47 +70,56 @@ export default function ProductTable() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {products.length > 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  <CircularProgress size={24} />
+                </TableCell>
+              </TableRow>
+            ) : isError ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  <Chip label="Error loading products" color="error" />
+                </TableCell>
+              </TableRow>
+            ) : products.length > 0 ? (
               products.map((product, index) => (
                 <TableRow key={product.id}>
                   <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                   <TableCell>{product.title}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={product.category}
-                      size="small"
-                      color="primary"
-                      sx={{
-                        fontSize: "0.75rem",
-                        height: "22px",
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>${product.price}</TableCell>
-                  <TableCell>{product.brand || "-"}</TableCell>
-                  <TableCell align="right" sx={{ display: "flex", gap: 1 }}>
-                    <DeleteProduct productId={product.id} />
+                  <TableCell>{product.category}</TableCell>
+                  <TableCell>{product.price}</TableCell>
+                  <TableCell>{product.brand}</TableCell>
+                  <TableCell
+                    sx={{
+                      display: "flex",
+                      gap: 1,
+                    }}
+                    align="right"
+                  >
                     <Button
+                      sx={{
+                        borderRadius: 2,
+                      }}
                       variant="contained"
                       color="primary"
                       size="small"
-                      href={`/products/${product.id}/update`}
+                    >
+                      <Edit fontSize="small" />
+                    </Button>
+                    <DeleteProduct productId={product.id} />
+                    <Button
+                      onClick={() => router.push(`/products/${product.id}/view`)}
+                      aria-label="view product"
+                      title="View Product"
                       sx={{
                         borderRadius: 2,
-                        padding: 1,
-                        maxWidth: "30px",
                       }}
-                    >
-                      <Edit sx={{ fontSize: "large" }} />
-                    </Button>
-                    <Button
                       variant="contained"
                       color="secondary"
                       size="small"
-                      href={`/products/${product.id}/view`}
-                      sx={{ borderRadius: 2, padding: 1, maxWidth: "30px" }}
                     >
-                      <Visibility sx={{ fontSize: "large" }} />
+                      <Visibility fontSize="small" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -122,7 +127,7 @@ export default function ProductTable() {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  No products found
+                  <Chip label="No products found" color="info" />
                 </TableCell>
               </TableRow>
             )}

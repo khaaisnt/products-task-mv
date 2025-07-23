@@ -7,13 +7,15 @@ const PRIMARY_QUERY_KEY = "PRODUCTS";
 const URL = "/products";
 
 interface dataRequest {
-  total: number;
   skip: number;
   limit: number;
 }
 
 interface IProductDataResponse {
-  data: Product[];
+  products: Product[];
+  total: number;
+  skip: number;
+  limit: number;
 }
 
 export const useFetchProduct = (body: dataRequest) => {
@@ -24,7 +26,6 @@ export const useFetchProduct = (body: dataRequest) => {
     queryFn: async () => {
       const response = await axiosInstance.get<IProductDataResponse>(URL, {
         params: {
-          total: body.total,
           skip: body.skip,
           limit: body.limit,
         },
