@@ -104,12 +104,17 @@ export default function ProductTable() {
                       variant="contained"
                       color="primary"
                       size="small"
+                      onClick={() =>
+                        router.push(`/products/${product.id}/update`)
+                      }
                     >
                       <Edit fontSize="small" />
                     </Button>
                     <DeleteProduct productId={product.id} />
                     <Button
-                      onClick={() => router.push(`/products/${product.id}/view`)}
+                      onClick={() =>
+                        router.push(`/products/${product.id}/view`)
+                      }
                       aria-label="view product"
                       title="View Product"
                       sx={{

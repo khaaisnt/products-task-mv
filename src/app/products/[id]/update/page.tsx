@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useEffect } from "react";
-import axiosInstance from "../../../../../lib/axios/axiosInstance";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter, useParams } from "next/navigation";
-import { Button, TextField, Typography } from "@mui/material";
+import { Button, TextField, Typography, CircularProgress } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { updateProductSchema } from "../../validation/product.schema";
+import { useUpdateProduct } from "../../services/updateProduct.service";
+import { useFetchProductDetail } from "../../services/fetchProductDetail.service";
 
 type ProductFormData = {
   title: string;
@@ -21,12 +22,19 @@ type ProductFormData = {
 export default function UpdateProduct() {
   const router = useRouter();
   const params = useParams();
+  const productId = Number(params.id);
+
+  const { mutate, status } = useUpdateProduct(productId);
+  const {
+    data: product,
+    isLoading,
+    isError,
+  } = useFetchProductDetail(productId);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
     reset,
   } = useForm<ProductFormData>({
     resolver: yupResolver(updateProductSchema),
@@ -40,61 +48,54 @@ export default function UpdateProduct() {
   });
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const productId = params.id;
-        if (!productId) {
-          toast.error("Product ID is missing");
-          router.push("/products");
-          return;
-        }
+    if (product) {
+      reset({
+        title: product.title || "",
+        category: product.category || "",
+        price: product.price || 0,
+        description: product.description || "",
+        brand: product.brand || "",
+      });
+    }
+  }, [product, reset]);
 
-        const response = await axiosInstance.get(`/products/${productId}`);
-
-        if (response.status >= 200 && response.status < 300) {
-          const product = response.data;
-
-          // Use reset instead of individual setValues for better performance
-          reset({
-            title: product.title || "",
-            category: product.category || "",
-            price: product.price || 0,
-            description: product.description || "",
-            brand: product.brand || "",
-          });
-        } else {
-          toast.error("Failed to fetch product details");
-          router.push("/products");
-        }
-      } catch (error) {
-        console.error("Error fetching product:", error);
-        toast.error("Error loading product details");
-        router.push("/products");
-      }
-    };
-
-    fetchProduct();
-  }, [params.id, router, setValue, reset]);
-
-  const onSubmit = async (data: ProductFormData) => {
-    try {
-      const response = await axiosInstance.put(`/products/${params.id}`, data);
-
-      if (response.status >= 200 && response.status < 300) {
-        const message = response.data.message || "Product updated successfully";
-        toast.success(message);
+  const onSubmit = (data: ProductFormData) => {
+    mutate(data, {
+      onSuccess: () => {
         setTimeout(() => {
           router.push("/products");
         }, 1500);
-      } else {
-        const message = response.data.message || "Failed to update product";
-        toast.error(message);
-      }
-    } catch (error) {
-      console.error("Error updating product:", error);
-      toast.error("Error updating product");
-    }
+      },
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="container p-10 mx-auto text-center">
+        <CircularProgress />
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          Loading product details...
+        </Typography>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="container p-10 mx-auto text-center">
+        <Typography variant="body1" color="error" sx={{ mb: 2 }}>
+          Failed to load product details.
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => router.push("/products")}
+        >
+          Back to Products
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container p-10 mx-auto">
@@ -138,7 +139,7 @@ export default function UpdateProduct() {
           label="Price"
           variant="outlined"
           fullWidth
-          type="number"
+          type="text"
           {...register("price", { valueAsNumber: true })}
           error={!!errors.price}
           helperText={errors.price?.message}
@@ -175,7 +176,7 @@ export default function UpdateProduct() {
             textTransform: "none",
           }}
         >
-          Update
+          {status === "pending" ? "Updating..." : "Update"}
         </Button>
       </form>
     </div>
