@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { createProductSchema } from "../validation/product.schema";
 import { ArrowBack } from "@mui/icons-material";
+import { useCreateProduct } from "../services/createProduct.service";
 
 type ProductFormData = {
   title: string;
@@ -20,6 +21,7 @@ type ProductFormData = {
 
 export default function CreateProduct() {
   const router = useRouter();
+  const { mutate, status } = useCreateProduct();
 
   const {
     register,
@@ -37,32 +39,27 @@ export default function CreateProduct() {
     },
   });
 
-  const onSubmit = async (data: ProductFormData) => {
-    try {
-      const response = await axiosInstance.post("/products/add", data);
-
-      if (response.status >= 200 && response.status < 300) {
-        const message = response.data.message || "Produk berhasil dibuat";
-        toast.success(message);
+  const onSubmit = (data: ProductFormData) => {
+    mutate(data, {
+      onSuccess: () => {
         reset();
         setTimeout(() => {
           router.push("/products");
         }, 1500);
-      } else {
-        const message = response.data.message || "Gagal membuat produk";
-        toast.error(message);
-      }
-    } catch (error) {
-      console.log("Error creating product:", error);
-      toast.error("Terjadi kesalahan saat membuat produk");
-    }
+      },
+    });
   };
 
   return (
     <div className="container p-10 mx-auto">
       <Toaster position="top-center" />
 
-      <Button onClick={router.back} variant="contained" color="primary" startIcon={<ArrowBack />}>
+      <Button
+        onClick={router.back}
+        variant="contained"
+        color="primary"
+        startIcon={<ArrowBack />}
+      >
         Back
       </Button>
       <div className="my-4">
@@ -95,7 +92,7 @@ export default function CreateProduct() {
         <div>
           <TextField
             label="Price"
-            type="number"
+            type="text"
             variant="outlined"
             fullWidth
             {...register("price", { valueAsNumber: true })}
@@ -141,7 +138,7 @@ export default function CreateProduct() {
           variant="contained"
           color="primary"
         >
-          Submit
+          {status === "pending" ? "Creating..." : "Submit"}
         </Button>
       </form>
     </div>

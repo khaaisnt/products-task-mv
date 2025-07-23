@@ -21,10 +21,11 @@ export default function ProductPage() {
         </div>
         <Button
           sx={{
-            borderRadius: 100,
+            borderRadius: 3,
             textTransform: "none",
             marginY: 2,
           }}
+          size="large"
           href="/products/create"
           variant="contained"
         >
