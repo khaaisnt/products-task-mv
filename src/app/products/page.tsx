@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import axiosInstance from "../../../lib/axios/axiosInstance";
-import { Button, ButtonGroup } from "@mui/material";
+import { Button, ButtonGroup, Tooltip } from "@mui/material";
 import { Add, Apps, TableChart } from "@mui/icons-material";
 import ProductCard from "./components/productCard";
 import ProductTable from "./components/productTable";
@@ -19,19 +19,21 @@ export default function ProductPage() {
             Manage your products effectively
           </p>
         </div>
-        <Button
-          sx={{
-            borderRadius: 3,
-            textTransform: "none",
-            marginY: 2,
-          }}
-          size="large"
-          href="/products/create"
-          variant="contained"
-        >
-          Create Product
-          <Add sx={{ marginLeft: 1, fontSize: "medium" }} />
-        </Button>
+        <Tooltip title="Create a new product" arrow placement="top">
+          <Button
+            sx={{
+              borderRadius: 3,
+              marginY: 2,
+              textTransform: "none",
+            }}
+            size="large"
+            href="/products/create"
+            variant="contained"
+          >
+            Create Product
+            <Add sx={{ marginLeft: 1, fontSize: "large" }} />
+          </Button>
+        </Tooltip>
       </div>
 
       <ButtonGroup variant="contained" sx={{ mb: 3 }}>
