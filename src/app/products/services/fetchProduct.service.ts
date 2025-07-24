@@ -4,11 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "../../../../lib/axios/axiosInstance";
 
 const PRIMARY_QUERY_KEY = "PRODUCTS";
-const URL = "/products";
+const BASE_URL = "/products";
 
 interface dataRequest {
   skip: number;
   limit: number;
+  search?: string;
 }
 
 interface IProductDataResponse {
@@ -24,12 +25,18 @@ export const useFetchProduct = (body: dataRequest) => {
   return useQuery({
     queryKey: keys,
     queryFn: async () => {
-      const response = await axiosInstance.get<IProductDataResponse>(URL, {
-        params: {
-          skip: body.skip,
-          limit: body.limit,
-        },
+      const url = body.search ? `${BASE_URL}/search` : BASE_URL;
+
+      const params = {
+        ...(body.search && { q: body.search }),
+        skip: body.skip,
+        limit: body.limit,
+      };
+
+      const response = await axiosInstance.get<IProductDataResponse>(url, {
+        params: params,
       });
+
       return response.data;
     },
   });

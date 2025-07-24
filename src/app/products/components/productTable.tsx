@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, Visibility } from "@mui/icons-material";
+import { Edit, Search, Visibility } from "@mui/icons-material";
 import {
   TableContainer,
   Box,
@@ -14,21 +14,27 @@ import {
   TableBody,
   TablePagination,
   CircularProgress,
+  InputAdornment,
+  TextField,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import DeleteProduct from "./deleteProduct";
 import { useFetchProduct } from "../services/fetchProduct.service";
 import { useRouter } from "next/navigation";
+import { useDebounce } from "@/app/hooks/useDebounce";
 
 export default function ProductTable() {
   const router = useRouter();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
 
   const { data, isLoading, isError } = useFetchProduct({
     skip: page * rowsPerPage,
     limit: rowsPerPage,
+    search: debouncedSearch,
   });
 
   useEffect(() => {
@@ -36,6 +42,10 @@ export default function ProductTable() {
       setTotalCount(data.total);
     }
   }, [data]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch]);
 
   const products = data?.products || [];
 
@@ -50,8 +60,28 @@ export default function ProductTable() {
     setPage(0);
   };
 
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
+  };
+
   return (
     <Box>
+      <TextField
+        fullWidth
+        variant="outlined"
+        placeholder="Search products..."
+        value={search}
+        onChange={handleSearchChange}
+        sx={{ mb: 2, borderRadius: 2 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search />
+            </InputAdornment>
+          ),
+        }}
+      />
+
       <TableContainer
         component={Paper}
         sx={{ mt: 2, borderRadius: 2, boxShadow: 2 }}

@@ -8,22 +8,28 @@ import {
   CardMedia,
   CircularProgress,
   Grid,
+  InputAdornment,
   Pagination,
+  TextField,
   Typography,
 } from "@mui/material";
-import { Edit, Error, Visibility } from "@mui/icons-material";
+import { Edit, Error, Search, Visibility } from "@mui/icons-material";
 import DeleteProduct from "./deleteProduct";
 import { useFetchProduct } from "../services/fetchProduct.service";
+import { useDebounce } from "@/app/hooks/useDebounce";
 
 export default function ProductCard() {
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const itemsPerPage = 10;
   const skip = (currentPage - 1) * itemsPerPage;
 
   const { data, isLoading, isError } = useFetchProduct({
     skip: skip,
     limit: itemsPerPage,
+    search: debouncedSearch,
   });
 
   useEffect(() => {
@@ -31,6 +37,10 @@ export default function ProductCard() {
       setTotalPages(Math.ceil(data.total / itemsPerPage));
     }
   }, [data]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   const products = data?.products || [];
 
@@ -41,8 +51,28 @@ export default function ProductCard() {
     setCurrentPage(value);
   };
 
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
+  };
+
   return (
     <Box>
+      <TextField
+        variant="outlined"
+        fullWidth
+        placeholder="Search products..."
+        value={search}
+        onChange={handleSearchChange}
+        sx={{ mb: 2, borderRadius: 2 }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search />
+            </InputAdornment>
+          ),
+        }}
+      />
+
       <Grid
         component="div"
         spacing={2}
