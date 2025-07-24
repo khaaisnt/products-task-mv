@@ -3,13 +3,24 @@
 import React, { useEffect } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter, useParams } from "next/navigation";
-import { Button, TextField, Typography, CircularProgress } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Typography,
+  CircularProgress,
+  FormHelperText,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+} from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { updateProductSchema } from "../../validation/product.schema";
 import { useUpdateProduct } from "../../services/updateProduct.service";
 import { useFetchProductDetail } from "../../services/fetchProductDetail.service";
+import { useFetchProductCategories } from "../../services/fetchCategories.service";
 
 type ProductFormData = {
   title: string;
@@ -24,6 +35,10 @@ export default function UpdateProduct() {
   const params = useParams();
   const productId = Number(params.id);
 
+  const { data: categoriesData, isLoading: isCategoriesLoading } =
+    useFetchProductCategories();
+  const categories = categoriesData || [];
+
   const { mutate, status } = useUpdateProduct(productId);
   const {
     data: product,
@@ -34,6 +49,7 @@ export default function UpdateProduct() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
   } = useForm<ProductFormData>({
@@ -126,15 +142,37 @@ export default function UpdateProduct() {
           helperText={errors.title?.message}
           InputLabelProps={{ shrink: true }}
         />
-        <TextField
-          label="Category"
-          variant="outlined"
-          fullWidth
-          {...register("category")}
-          error={!!errors.category}
-          helperText={errors.category?.message}
-          InputLabelProps={{ shrink: true }}
-        />
+        <FormControl variant="outlined" fullWidth error={!!errors.category}>
+          <InputLabel id="category-label">Category</InputLabel>
+          <Controller
+            name="category"
+            control={control}
+            render={({ field }) => (
+              <Select
+                labelId="category-label"
+                id="category-select"
+                label="Category"
+                {...field}
+                disabled={status === "pending" || isCategoriesLoading}
+              >
+                {isCategoriesLoading ? (
+                  <MenuItem value="">
+                    <CircularProgress size={20} />
+                  </MenuItem>
+                ) : (
+                  categories.map((category) => (
+                    <MenuItem key={category} value={category}>
+                      {category}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+            )}
+          />
+          {errors.category && (
+            <FormHelperText>{errors.category.message}</FormHelperText>
+          )}
+        </FormControl>
         <TextField
           label="Price"
           variant="outlined"

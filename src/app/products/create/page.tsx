@@ -2,13 +2,24 @@
 
 import React from "react";
 import { Toaster } from "react-hot-toast";
-import { Button, TextField, Typography } from "@mui/material";
+import {
+  Button,
+  CircularProgress,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { createProductSchema } from "../validation/product.schema";
 import { ArrowBack } from "@mui/icons-material";
 import { useCreateProduct } from "../services/createProduct.service";
+import { useFetchProductCategories } from "../services/fetchCategories.service";
 
 type ProductFormData = {
   title: string;
@@ -22,10 +33,15 @@ export default function CreateProduct() {
   const router = useRouter();
   const { mutate, status } = useCreateProduct();
 
+  const { data: categoriesData, isLoading: isCategoriesLoading } =
+    useFetchProductCategories();
+  const categories = categoriesData || [];
+
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<ProductFormData>({
     resolver: yupResolver(createProductSchema),
@@ -78,14 +94,37 @@ export default function CreateProduct() {
         </div>
 
         <div>
-          <TextField
-            label="Category"
-            variant="outlined"
-            fullWidth
-            {...register("category")}
-            error={!!errors.category}
-            helperText={errors.category?.message}
-          />
+          <FormControl variant="outlined" fullWidth error={!!errors.category}>
+            <InputLabel id="category-label">Category</InputLabel>
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  labelId="category-label"
+                  id="category-select"
+                  label="Category"
+                  {...field}
+                  disabled={status === "pending" || isCategoriesLoading}
+                >
+                  {isCategoriesLoading ? (
+                    <MenuItem value="">
+                      <CircularProgress size={20} />
+                    </MenuItem>
+                  ) : (
+                    categories.map((category) => (
+                      <MenuItem key={category} value={category}>
+                        {category}
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              )}
+            />
+            {errors.category && (
+              <FormHelperText>{errors.category.message}</FormHelperText>
+            )}
+          </FormControl>
         </div>
 
         <div>
