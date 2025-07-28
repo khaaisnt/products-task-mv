@@ -1,23 +1,43 @@
 import * as yup from "yup";
 
-export const userSchema = yup.object().shape({
-  id: yup.number().required(),
-  firstName: yup.string().required(),
-  lastName: yup.string().required(),
-  age: yup.number().min(0).required(),
-  gender: yup.string().oneOf(["male", "female"]).required(),
-  email: yup.string().email().required(),
-  phone: yup.string().matches(/^\d+$/, "Phone must be numbers only").required(),
+export const createUserSchema = yup.object({
+  firstName: yup
+    .string()
+    .required("First name is required")
+    .min(2, "First name must be at least 2 characters"),
+  lastName: yup
+    .string()
+    .required("Last name is required")
+    .min(2, "Last name must be at least 2 characters"),
+  age: yup
+    .number()
+    .required("Age is required")
+    .positive("Age must be positive")
+    .integer("Age must be an integer")
+    .min(18, "Must be at least 18 years old"),
+  gender: yup
+    .string()
+    .required("Gender is required")
+    .oneOf(["male", "female"], "Invalid gender"),
+  email: yup
+    .string()
+    .required("Email is required")
+    .email("Invalid email format"),
+  phone: yup
+    .string()
+    .required("Phone number is required")
+    .matches(/^\+?[0-9\s\-()]{8,20}$/, "Invalid phone number"),
   birthDate: yup
     .date()
-    .max(new Date(), "Birth date cannot be in the future")
-    .required(),
-  username: yup.string().min(3).max(30).required(),
+    .nullable()
+    .required("Birth date is required")
+    .max(new Date(), "Birth date cannot be in the future"),
+  username: yup
+    .string()
+    .required("Username is required")
+    .min(4, "Username must be at least 4 characters"),
   password: yup
     .string()
-    .min(8)
-    .matches(/[a-z]/, "Password must contain at least one lowercase letter")
-    .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .matches(/[^A-Za-z0-9]/, "Password must contain at least one symbol")
-    .required(),
+    .required("Password is required")
+    .min(6, "Password must be at least 6 characters"),
 });
